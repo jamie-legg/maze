@@ -33,14 +33,14 @@ const Maze: React.FC = () => {
   return (
     <Tooltip.Provider>
       <div className="flex">
-        <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-tr from-sky-950 to-sky-900">
+        <div className="relative h-screen w-screen overflow-hidden bg-black">
           {maze.map((point, index) => {
             if (index === 0) return null;
             const prevPoint = maze[index - 1];
             const isVertical = prevPoint.x === point.x;
             const top = Math.min(prevPoint.y, point.y);
             const left = Math.min(prevPoint.x, point.x);
-            const width = isVertical ? 2 : Math.abs(prevPoint.x - point.x);
+            const width = isVertical ? 2 : Math.abs(prevPoint.x - point.x) +2
             const height = isVertical ? Math.abs(prevPoint.y - point.y) : 2;
 
             return (

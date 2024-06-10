@@ -1,14 +1,14 @@
-"use client";;
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import { Direction, Move, Point, RecordIndex } from "../types";
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from "next/navigation";
 import { decodeMaze, encodeMaze } from "./encode";
 
 export const useMazeHandlers = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [maze, setMaze] = useState<Point[]>([{ x: 50, y: 50 }]);
-  const [currentColor, setCurrentColor] = useState<string>("#0ea5e9");
+  const [currentColor, setCurrentColor] = useState<string>("#ffffff");
   const [recording, setRecording] = useState<Move[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordIndex, setRecordIndex] = useState<RecordIndex>({
@@ -29,9 +29,8 @@ export const useMazeHandlers = () => {
     setRecords([]);
     setRecording([]);
     setIsPlaying(false);
-    router.replace('/');
+    router.replace("/");
   };
-
 
   const undo = useCallback(() => {
     setRecording((prevRecording) => {
@@ -41,54 +40,56 @@ export const useMazeHandlers = () => {
     setMaze((prevMaze) => {
       if (prevMaze.length === 1) return prevMaze;
       return prevMaze.slice(0, -1);
-    })}, []);
-
-
+    });
+  }, []);
 
   useEffect(() => {
     const encodedMaze = encodeMaze(recording);
     router.push(`?maze=${encodedMaze}`);
   }, [recording, router]);
 
-  const move = useCallback(
-    (direction: Direction, moveDistance: number, isPlayback = false) => {
-      if (!isPlayback) {
-        setRecording((prevRecording) => [
-          ...prevRecording,
-          { direction, distance: moveDistance },
-        ]);
+const move = useCallback(
+  (direction: Direction, moveDistance: number, isPlayback = false) => {
+    if (!isPlayback) {
+      setRecording((prevRecording) => [
+        ...prevRecording,
+        { direction, distance: moveDistance },
+      ]);
+    }
+    console.log('moving: ', direction, ' distance: ', moveDistance, ' isPlayback: ', isPlayback);
+    
+    setMaze((prevMaze) => {
+      const currentPoint = prevMaze[prevMaze.length - 1];
+      let newPoint = { x: currentPoint.x, y: currentPoint.y };
+
+      switch (direction) {
+        case "up":
+          newPoint.y -= moveDistance;
+          break;
+        case "down":
+          newPoint.y += moveDistance;
+          break;
+        case "left":
+          newPoint.x -= moveDistance;
+          break;
+        case "right":
+          newPoint.x += moveDistance;
+          break;
+        default:
+          newPoint = currentPoint; // If the direction is not recognized, do not move.
       }
-      console.log('moving: ', direction, ' distance: ', moveDistance, ' isPlayback: ', isPlayback);
-      
 
-      setMaze((prevMaze) => {
-        const currentPoint = prevMaze[prevMaze.length - 1];
-        const newPoint = {
-          x: currentPoint.x,
-          y: currentPoint.y,
-        };
+      // Adjust coordinates to avoid fractional pixels
+      newPoint.x = Math.round(newPoint.x);
+      newPoint.y = Math.round(newPoint.y);
 
-        switch (direction) {
-          case "up":
-            newPoint.y -= moveDistance;
-            break;
-          case "down":
-            newPoint.y += moveDistance;
-            break;
-          case "left":
-            newPoint.x -= moveDistance;
-            break;
-          case "right":
-            newPoint.x += moveDistance;
-            break;
-        }
+      const newMaze = [...prevMaze, newPoint];
+      return newMaze;
+    });
+  },
+  []
+);
 
-        const newMaze = [...prevMaze, newPoint];
-        return newMaze;
-      });
-    },
-    []
-  );
 
   const playback = useCallback(
     async (record: Move[], resetMaze = false) => {
@@ -103,7 +104,6 @@ export const useMazeHandlers = () => {
     [move]
   );
 
-
   const loadMaze = useCallback(() => {
     const maze = searchParams.get("maze");
     if (maze) {
@@ -113,7 +113,7 @@ export const useMazeHandlers = () => {
     }
   }, [searchParams, playback]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!loaded) {
       loadMaze();
       setLoaded(true);
@@ -174,8 +174,6 @@ export const useMazeHandlers = () => {
     setIsPlaying(false);
   };
 
-
-
   return {
     maze,
     currentColor,
@@ -195,6 +193,6 @@ export const useMazeHandlers = () => {
     setColorPickerOpen,
     showMobileControls,
     setShowMobileControls,
-    clearMaze
+    clearMaze,
   };
 };
